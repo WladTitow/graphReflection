@@ -2,7 +2,7 @@
 
 namespace GraphReflection;
 
-class ReflectionPrinter 
+interface ReflectionPrinter 
 {
     
 }
