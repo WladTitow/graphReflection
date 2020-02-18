@@ -2,6 +2,7 @@
 
 namespace GraphReflection;
 
+use ReflectionClass;
 use Composer\Autoload\ClassLoader;
 use Roave\BetterReflection\BetterReflection;
 use Roave\BetterReflection\Reflector\ClassReflector;
@@ -10,36 +11,21 @@ use Roave\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
 
 class GraphReflection
 {
+    private $classes = array();
     /**
      * @param ClassLoader $classLoader
      */
     public function reflect(ClassLoader $classLoader)
     {        
-        $classMap = $classLoader->getPrefixesPsr4();       
+        $classMap = $classLoader->getPrefixesPsr4() + $classLoader->getPrefixes();       
         foreach ($classMap as $rootName => $directories) {
             foreach ($directories as $key => $directory) {
                 $astLocator = (new BetterReflection())->astLocator();
                 $directoriesSourceLocator = new DirectoriesSourceLocator([$directory], $astLocator);
                 $reflector = new ClassReflector($directoriesSourceLocator);
-                $classes = $reflector->getAllClasses();
-                foreach ($classes as $classesKey => $classData) {                    
-                    echo $classData->getFileName().'<br>';
-                }
+                $this->classes += $reflector->getAllClasses();
             }
         }
-
-        /*
-        $classMap = $classLoader->getPrefixesPsr4();
-
-        $astLocator = (new BetterReflection())->astLocator();
-        $reflector = new ClassReflector(new ComposerSourceLocator($classLoader, $astLocator));
-        $reflectionClass = $reflector->reflect('Foo\Bar\MyClass');
-
-        print_r(get_declared_classes());
-        echo $reflectionClass->getShortName();
-        echo $reflectionClass->getName(); 
-        echo $reflectionClass->getNamespaceName(); 
-        */
     }
 
     /**
@@ -47,6 +33,13 @@ class GraphReflection
      */
     public function print(ReflectionPrinter $printer)
     {
-
+        foreach ($this->classes as $classesKey => $classData) {     
+            $node = $classData->getName();
+            $printer->addNodeClass($node);  
+            if($parent = $classData->getParentClass()) {
+                $printer->addParentClass($node, $parent->getNamespaceName());            
+            }
+        }
+        $printer->print();
     }
 }
