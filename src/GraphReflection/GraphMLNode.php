@@ -25,4 +25,12 @@ class GraphMLNode implements ReflectionNode
         return $this->xml->attributes()['id'];
     }
 
+    /**
+     * @return string
+     */
+    public function getType() : string
+    {
+        return $this->xml->attributes()['type'];
+    }
+
 }
